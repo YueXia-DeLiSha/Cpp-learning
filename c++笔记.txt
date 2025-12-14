@@ -1429,6 +1429,9 @@ C++通过提供特殊的对象指针，this指针，解决上述问题，this指
 
 this指针是隐含每一个非静态成员函数的一种指针
 this指针不需要定义，直接使用即可
+this指针本质是一个指针常量，指向当前对象 指向不可修改但是this指针的值可以修改
+相当于：类名 * const this;
+如果想值也不被修改就像这样：const 类名 * const this;
 this指针的用途：
 当形参和成员变量同名时，可以通过this指针区分
 在类的非静态成员函数中返回对象本身，可以使用retuen *this;
@@ -1499,3 +1502,128 @@ public:
 private:
 	int age;
 };
+
+void test01() {
+	pero* p = NULL;
+	p->show(); // 可以调用成员函数，不涉及到成员变量
+	p->setAge(18); // 不可以调用成员函数，因为setAge使用了this指针访问成员变量，报错原因是this指针为空无法指向对象
+}
+4.3.4 const修饰成员函数
+作用：在类的成员函数后加上const关键字，称为常量成员函数
+语法：返回值类型 函数名() const { 函数体; }
+常函数：
+成员函数后加上const关键字，称为常量成员函数
+常函数只能访问类中的常量成员变量和常量成员函数
+常函数可以修饰常对象
+常函数内不可修改成员属性
+成员属性声明时添加mutable关键字，可以在常函数内修改该成员属性，在常对象下也可以修改
+常对象：
+通过const关键字修饰的对象，称为常对象
+常对象只能调用常函数
+常对象不可调用普通成员函数是因为普通成员函数有可能会修改成员属性
+示例：
+class pero {
+public:
+	void show() const { // 常量成员函数
+		age = 20; 
+		std::cout << "年龄为：" << age << std::endl;
+	}
+	void setAge(int age) {
+		this->age = age;
+	}
+
+	void setHeight(int height) const {
+		this->height = height; // 错误，常函数内不可修改成员属性 相当于const pero * const this;限定指向值不可修改
+		//在成员函数后加const，修饰的是this指向，让其指向的值不可修改
+	}
+private:
+	 mutable int age;//添加mutable关键字，可以在常函数内修改该成员属性
+	int height;
+};
+void test01() {
+	const pero p; // 常对象
+	p.show(); // 可以调用常函数
+	//p.setAge(18); // 错误，常对象不能调用非常函数
+}
+
+4.4 友元
+4.4.1 友元概述
+在C++中，类的成员属性一般都是私有的，外部无法直接访问
+有时候需要让某个函数或者类访问另一个类的私有成员，这时就需要用到友元
+友元可以是函数，也可以是类
+友元函数：通过在类中声明一个函数为友元函数，可以让该函数访问类的私有成员
+友元类：通过在类中声明另一个类为友元类，可以让该类的所有成员函数访问本类的私有成员
+
+生活中你的家有客厅，卧室，厨房等房间，每个房间都有自己的隐私
+有时候你需要让你的好朋友进入你的卧室，这时你就需要给他一把钥匙
+友元函数和友元类就像是钥匙，可以让外部函数或者类访问类的私有成员
+在程序中，有一些私有属性也想让类外的特殊的函数或者类进行访问就需要用到友元技术
+友元的目的就是为了让一个函数或类访问另一个类的私有成员
+
+友元的关键字是friend
+友元函数语法：在类中声明friend 返回值类型 函数名(参数列表);
+友元类语法：在类中声明friend class 类名;
+
+友元的三种实现：
+全局函数做友元
+类的成员函数做友元
+类做友元
+
+4.4.1 全局函数做友元
+通过在类中声明一个全局函数为友元函数，可以让该函数访问类的私有成员
+语法：在类中声明friend 返回值类型 函数名(参数列表); 相当于声明该函数可以访问类的私有成员
+示例：
+#include <iostream>
+class Person {
+private:
+	std::string name;
+	int age;
+public:
+	Person(std::string n, int a) :name(n), age(a) {}
+	friend void showPerson(Person p); // 声明友元函数
+};
+void showPerson(Person p) { // 友元函数定义
+	std::cout << "姓名：" << p.name << ", 年龄：" << p.age << std::endl; // 访问私有成员
+}
+int main() {
+	Person p("张三", 18);
+	showPerson(p); // 调用友元函数
+	return 0;
+}
+
+4.4.2 类做友元
+通过在类中声明另一个类为友元类，可以让该类的所有成员函数访问本类的私有成员
+语法：在类中声明friend class 类名; 相当于声明该类的所有成员函数可以访问本类的私有成员
+示例：
+#include <iostream>
+class Friend; // 前置声明,避免编译错误
+class Person {
+private:
+	std::string name;
+	int age;
+public:
+	Person(std::string n, int a) :name(n), age(a) {}
+	friend class Friend; // 声明友元类
+};
+class Friend {
+public:
+	void showPerson(Person p) { // 友元类的成员函数
+		std::cout << "姓名：" << p.name << ", 年龄：" << p.age << std::endl; // 访问私有成员
+	}
+};
+
+类外写成员函数的方法：
+例如现在有一个类A，我们想在类外实现它的成员函数func，可以按照以下步骤进行：
+1. 在类A的声明中，先进行前置声明，告诉编译器类A的存在。
+2. 在类A的声明中，声明成员函数func的原型。
+3. 在类外实现成员函数func，使用类名加作用域运算符::来定义函数体。
+示例代码如下：
+#include <iostream>
+class A; // 前置声明
+class A {
+public:
+	void func(); // 成员函数声明
+};
+void A::func() { // 成员函数定义
+	std::cout << "类A的成员函数func被调用" << std::endl;
+}
