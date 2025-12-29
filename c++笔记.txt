@@ -1627,3 +1627,32 @@ public:
 void A::func() { // 成员函数定义
 	std::cout << "类A的成员函数func被调用" << std::endl;
 }
+
+4.4.3 成员函数做友元
+通过在类中声明另一个类的成员函数为友元函数，可以让该成员函数访问本类的私有成员
+语法：在类中声明friend 返回值类型 类名::函数名(参数列表);
+示例：
+#include <iostream>
+class Person; // 前置声明
+class Friend {
+public:
+	void showPerson(Person p); // 成员函数声明
+};
+class Person {
+private:
+	std::string name;
+	int age;
+public:
+	Person(std::string n, int a) :name(n), age(a) {}
+	friend void Friend::showPerson(Person p); // 声明成员函数为友元
+};
+void Friend::showPerson(Person p) { // 友元成员函数定义
+	std::cout << "姓名：" << p.name << ", 年龄：" << p.age << std::endl; // 访问私有成员
+}
+int main() {
+	Person p("张三", 18);
+	Friend f;
+	f.showPerson(p); // 调用友元成员函数
+	return 0;
+}
+
