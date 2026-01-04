@@ -1656,3 +1656,68 @@ int main() {
 	return 0;
 }
 
+4.5 运算符重载
+运算符重载概述
+作用：让自定义类型的对象也能使用运算符进行操作，对已有的运算符进行重新定义和实现，赋予其新的功能，以应对不同的数据类型
+语法：返回值类型 operator 运算符(参数列表) { 函数体; }
+运算符重载的注意事项：
+1.运算符重载不能改变运算符的优先级和结合性
+2.运算符重载不能创建新的运算符
+3.运算符重载必须至少有一个参数是自定义类型
+4.运算符重载可以是成员函数，也可以是全局函数
+
+4.5.1 加号运算符重载
+作用：重载加号运算符，使其能够对自定义类型的对象进行加法操作
+示例：
+#include <iostream>
+class Point {
+public:
+	Point() {};
+	Point(int a, int b) {
+		this->m_a = a;
+		this->m_b = b;
+	}
+	//成员函数实现加号运算符重载
+	Point operator+(Point &p) {
+	Point temp;
+	temp.m_a = this->m_a + p.m_a;
+	temp.m_b = this->m_b + p.m_b;
+	return temp;
+}
+private:
+	int m_a;
+	int m_b;
+};
+int main() {
+	Point p1(1, 2);
+	Point p2(3, 4);
+	Point p3 = p1 + p2; // 调用加号运算符重载
+	return 0;
+}
+详细解释如下：
+//成员函数实现加号运算符重载
+Point operator+(Point &p) {
+	Point temp;
+	temp.m_a = this->m_a + p.m_a;
+	temp.m_b = this->m_b + p.m_b;
+	return temp;
+}
+相当于：
+Point 自定义函数名(Point &p) {
+	Point temp;
+	temp.m_a = this->m_a + p.m_a;
+	temp.m_b = this->m_b + p.m_b;
+	return temp;
+}
+然后：
+Point p3 = p1.自定义函数名(p2); // 这是未简化版的，本质
+简化版只需要 Point p3 = p1 + p2; // 调用加号运算符重载
+通过全局函数重载加号运算符
+Point operator+(Point &p1, Point &p2) {
+	Point temp;
+	temp.m_a = p1.m_a + p2.m_a;
+	temp.m_b = p1.m_b + p2.m_b;
+	return temp;
+}
+本质：point p3 = operator+(p1,p2);
+简化为：Point p3 = p1 + p2; // 调用加号运算符重载
