@@ -5039,6 +5039,87 @@ STL容器就是将一些运用最广泛的一些数据结构实现出来。
 
 * **质变算法**：指运算过程中改变区间内元素的值，例如：拷贝，移动，删除等算法。
 * **非质变算法**：指运算过程中不改变区间内元素的值，例如：排序，查找，比较，计数，遍历，寻找极值等算法。
+算法是 STL 的第三大组件（容器、迭代器、算法）。简单说：**算法是独立于容器的函数，通过迭代器操作容器中的元素**。
+
+**算法是什么？**
+- 常见操作：排序、查找、复制、比较、求和、反转、去重等。
+- 你**不需要**为每个容器重写这些操作，直接调用现成的算法函数即可。
+- 算法**不依赖具体容器**，只依赖迭代器的能力（比如 `sort` 要求随机访问迭代器）。
+
+ 基本语法（C++98）
+
+```cpp
+#include <algorithm>   // 大部分算法
+#include <numeric>     // 少数数值算法，如 accumulate
+```
+
+通用形式：
+```cpp
+算法名(开始迭代器, 结束迭代器, 其他参数...);
+```
+
+ 常用例子
+
+### 1. 排序 `sort`
+```cpp
+#include <algorithm>
+#include <vector>
+using namespace std;
+
+vector<int> v;
+v.push_back(3);
+v.push_back(1);
+v.push_back(2);
+
+sort(v.begin(), v.end());   // 现在 v = [1,2,3]
+```
+
+ 2. 查找 `find`
+```cpp
+vector<int>::iterator it = find(v.begin(), v.end(), 2);
+if (it != v.end()) {
+    cout << "找到：" << *it << endl;
+} else {
+    cout << "未找到" << endl;
+}
+```
+
+ 3. 反转 `reverse`
+```cpp
+reverse(v.begin(), v.end());   // 变成 [3,2,1]
+```
+
+ 4. 复制 `copy`
+```cpp
+vector<int> dest(3);   // 目标容器，需有足够空间
+copy(v.begin(), v.end(), dest.begin());   // 把 v 复制到 dest
+```
+
+ 5. 填充 `fill`
+```cpp
+fill(v.begin(), v.end(), 0);   // 所有元素变成 0
+```
+
+ 6. 遍历 `for_each`（用函数或函数对象）
+```cpp
+void print(int x) {
+    cout << x << " ";
+}
+for_each(v.begin(), v.end(), print);   // 输出每个元素
+```
+
+ 算法与迭代器类别的关系（重要）
+不同算法要求迭代器具备不同能力：
+- `sort`：需要随机访问迭代器（只能用于 `vector`、`deque`、数组，不能用于 `list`）
+- `find`：只需输入迭代器（几乎所有容器都可以）
+- `reverse`：需要双向迭代器（`list` 可以，`forward_list` 不可以）
+
+编译器会根据你传入的迭代器类型检查是否支持该算法。如果对 `list` 调用 `sort`，会得到编译错误。
+
+ 你现在只需记住
+> **`#include <algorithm>`，然后用 `算法名(起点, 终点, 其他参数)` 的格式，就能对容器做各种操作。**
+
+先掌握 `sort`、`find`、`reverse`、`copy`、`fill` 这五个，覆盖大多数场景。
 
 **迭代器**：容器与算法之间的粘合剂。
 迭代器是一种对象，提供了一种访问容器中元素的统一方式。迭代器使得算法可以独立于容器的具体实现，从而实现了算法和数据结构的分离。
@@ -5068,6 +5149,85 @@ STL容器就是将一些运用最广泛的一些数据结构实现出来。
 
 * **双向迭代器**：list、set、map等关联式容器的迭代器都是双向迭代器。
 * **随机访问迭代器**：vector、deque等序列式容器的迭代器都是随机访问迭代器。
+
+同一个容器，有四种迭代器类型（C++98）
+你以为只有一个 iterator？不，每个容器其实提供了 四种：
+
+| 类型 | 写法 |	能读？ | 能写？ | 遍历方向 |
+|------|------|--------|--------|----------|
+| iterator | vector<int>::iterator | ✅ | ✅ | 正向 |
+| const_iterator | vector<int>::const_iterator | ✅ | ❌ | 正向 |
+| reverse_iterator | vector<int>::reverse_iterator | ✅ | ✅ | 反向 |
+| const_reverse_iterator | vector<int>::const_reverse_iterator | ✅ | ❌ | 反向 |
+
+| 具体类型 | 所属迭代器类别	| 支持的操作（举例）|
+|------|------------|----------------|
+| vector<int>::iterator	| 随机访问迭代器 | ++, --, +=3, it1 - it2, it[2], <, > 等 |
+| vector<int>::const_iterator	| 随机访问迭代器（只读）	| 同上，但不可写 |
+| vector<int>::reverse_iterator	| 随机访问迭代器（反向）	| ++ 实际上是向前移动（走向 rend()），但同样支持 +=n、- 等 |
+| vector<int>::const_reverse_iterator	| 随机访问迭代器（反向只读）	| 同上，但不可写
+
+
+但作为初学者，你只需要知道：
+
+每个容器给你 4 种 内嵌迭代器类型。
+
+除此之外，标准库还提供了很多独立的迭代器类型（流迭代器、插入迭代器等）。
+
+指针也是一种迭代器。
+
+你不需要全部记住，遇到时再查就行。现在只要明白：vector<int>::iterator 只是迭代器类型的冰山一角。
+
+vector 的四种迭代器全是“随机访问”，list 的四种全是“双向”，forward_list 只有正向且是“前向”。
+
+**叫法一样，但用法（能做的操作）不一样。**
+
+ 叫法（类型名）相同
+每个容器都内嵌定义了同样名字的四种迭代器类型：
+- `container::iterator`
+- `container::const_iterator`
+- `container::reverse_iterator`
+- `container::const_reverse_iterator`
+
+所以你写 `vector<int>::iterator` 和 `list<int>::iterator`，名字结构完全一样。
+
+ 用法（支持的操作）不同
+迭代器能够进行的操作（`++`、`--`、`+n`、`[]` 等）取决于**容器底层的数据结构**：
+
+| 容器 | 迭代器类别 | 支持的操作举例 |
+|------|------------|----------------|
+| `vector` | 随机访问迭代器 | `++`, `--`, `+=2`, `it+5`, `it1-it2`, `it[3]`, `<`, `>` |
+| `deque` | 随机访问迭代器 | 同上（略弱但基本一致） |
+| `list` | 双向迭代器 | `++`, `--`，**不支持** `+n`、`it[n]`、`<` |
+| `forward_list` | 前向迭代器 | 只有 `++`，**不支持 `--`** |
+| `set` / `map` | 双向迭代器（通常） | `++`, `--`，不支持 `+n` |
+
+**举例说明**
+
+```cpp
+vector<int> v = {1,2,3};
+list<int>   l = {1,2,3};
+
+vector<int>::iterator vit = v.begin();
+list<int>::iterator   lit = l.begin();
+
+vit = vit + 2;   // 合法，vector 支持随机访问
+// lit = lit + 2; // 编译错误！list 迭代器不支持 + 操作
+
+++vit;  --vit;   // 合法，两者都支持
+++lit;  --lit;   // 合法
+```
+
+**反向迭代器的类似差异**
+反向迭代器 (`reverse_iterator`) 的能力与正向迭代器一致：  
+- `vector::reverse_iterator` 也是随机访问迭代器（支持 `+n`）  
+- `list::reverse_iterator` 只是双向迭代器（不支持 `+n`）
+
+**一句话总结:**
+> **四种迭代器的“名字”在所有容器中统一，但“能力”（可执行的操作）随容器不同而不同。**  
+> 你只要记住：`vector` 的迭代器最强，`list` 的弱一些，`forward_list` 最弱。
+
+所以学的时候，先掌握 `vector` 的迭代器用法（最自由），碰到其他容器再注意限制即可。
 
 迭代器的使用：
 
@@ -5118,7 +5278,136 @@ int main() {
 }
 ```
 
-#### 课外话
+`push_back` 是 **vector、list、deque** 等顺序容器提供的**成员函数**，作用是在**容器末尾添加一个元素**。
+
+ 语法
+
+```cpp
+容器对象.push_back(要添加的元素);
+```
+
+ 例子
+
+```cpp
+#include <vector>
+using namespace std;
+
+int main() {
+    vector<int> v;          // 空容器
+    v.push_back(10);        // 现在 v = [10]
+    v.push_back(20);        // 现在 v = [10, 20]
+    v.push_back(30);        // 现在 v = [10, 20, 30]
+    return 0;
+}
+```
+
+ 关键点
+
+- **自动扩容**：`vector` 内部空间不够时会自动分配更大内存，你不需要手动管理。
+- **时间复杂度**：`vector` 的 `push_back` 均摊 O(1)（大部分时候很快，偶尔扩容慢一点）。
+- **C++98 中**：添加的是元素的**副本**（会调用拷贝构造函数）。
+
+ 和迭代器的关系
+
+`push_back` 与迭代器**没有直接关系**，但是经常会一起用：
+
+```cpp
+vector<int> v;
+v.push_back(5);
+v.push_back(6);
+
+vector<int>::iterator it = v.begin();  // it 指向 5
+v.push_back(7);   // 现在 v = [5,6,7]
+
+// 注意：vector 的 push_back 可能导致之前的迭代器失效（如果触发了扩容）
+```
+
+> 初学时，你可以先把 `push_back` 理解为“往容器尾巴上塞东西”。
+
+ 记忆口诀
+
+> **`push_back` 屁股后面加，`pop_back` 屁股后面删。**
+
+如果你原来那个例子里的 `v.push_back(95)` 当时没看懂，现在明白了吧？它就是在空 `vector` 后面依次添加 95、87、62。
+
+容器有很多成员函数，但**你不需要一次全记住**，先掌握最常用的几个即可。
+
+ C++98 容器常见成员函数分类（以 `vector` 为例）
+
+ 1. 添加/删除元素（顺序容器通用）
+| 函数 | 作用 | 示例 |
+|------|------|------|
+| `push_back(x)` | 末尾添加元素 x | `v.push_back(10);` |
+| `pop_back()` | 删除末尾元素 | `v.pop_back();` |
+| `insert(it, x)` | 在迭代器 it 位置前插入 x | `v.insert(v.begin(), 99);` |
+| `erase(it)` | 删除迭代器 it 指向的元素 | `v.erase(v.begin());` |
+| `clear()` | 删除所有元素 | `v.clear();` |
+| `empty()` | 判断是否为空 | `if(v.empty()) {...}` |
+| `size()` | 返回元素个数 | `int n = v.size();` |
+
+ 2. 获取迭代器（所有容器）
+| 函数 | 作用 |
+|------|------|
+| `begin()` | 指向第一个元素 |
+| `end()` | 指向最后一个元素**之后** |
+| `rbegin()` | 反向迭代器指向最后一个元素 |
+| `rend()` | 反向迭代器指向第一个元素**之前** |
+
+ 3. 访问元素（`vector`、`deque`、`string` 支持）
+| 函数 | 作用 | 示例 |
+|------|------|------|
+| `front()` | 第一个元素 | `int a = v.front();` |
+| `back()` | 最后一个元素 | `int b = v.back();` |
+| `operator[]` | 下标访问（不检查越界） | `v[0] = 5;` |
+| `at()` | 下标访问（检查越界，抛异常） | `v.at(0) = 5;` |
+
+ 4. 容量操作（`vector`/`string`）
+| 函数 | 作用 |
+|------|------|
+| `capacity()` | 当前已分配的内存能容纳多少元素 |
+| `reserve(n)` | 预分配至少能容纳 n 个元素的内存 |
+
+ 不是所有容器都有这些函数
+- `list` 有 `push_back`、`pop_back`、`push_front`、`pop_front`，但没有 `[]` 和 `at`。
+- `vector` 没有 `push_front`（效率低）。
+- 关联容器（`set`、`map`）的插入/删除用 `insert`、`erase`，但没有 `push_back`。
+
+ 你现阶段只需记住
+> **`push_back`、`pop_back`、`size`、`empty`、`begin`、`end`、`insert`、`erase`、`clear`**  
+> 这 9 个函数覆盖 90% 的日常使用。
+
+ 一个综合示例（C++98）
+
+```cpp
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    vector<int> v;
+    v.push_back(10);
+    v.push_back(20);
+    v.push_back(30);
+
+    cout << "size = " << v.size() << endl;        // 3
+    cout << "front = " << v.front() << endl;      // 10
+    cout << "back = " << v.back() << endl;        // 30
+
+    v.pop_back();                  // 删除 30
+    v.insert(v.begin(), 5);        // 在开头插入 5
+    v.erase(v.begin() + 1);        // 删除原 10（现第二个元素）
+
+    for (vector<int>::iterator it = v.begin(); it != v.end(); ++it)
+        cout << *it << " ";        // 输出 5 20
+
+    v.clear();
+    cout << "empty = " << v.empty() << endl; // 1 (true)
+    return 0;
+}
+```
+
+把这些函数在你的编译器里跑一遍，比死记硬背强一百倍。
+**课外话**
 
 ：STL是必学的，但不是全部学完。 你只需要学最常用的20%，就能解决80%的问题。剩下那些冷门的容器和算法，用到时再查就行。
 
@@ -5148,7 +5437,9 @@ int main() {
 其余的，写代码时遇到不会的，直接搜“[容器名] + 用法”。
 
 #### 2.4.1 vector容器放置内置数据类型
-
+容器: vector
+算法：for_each
+迭代器：vector<int>::iterator (随机访问迭代器)
 vector是一个动态数组，可以存放任意类型的数据，包括内置数据类型和自定义数据类型。当vector存放内置数据类型时，vector会自动管理内存，动态调整大小以适应元素的增加或减少。例如：
 
 ```cpp
